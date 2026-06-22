@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Wallet, CreditCard, PiggyBank, TrendingUp, Plus, LogOut } from 'lucide-react';
 import BalanceCard from '../components/BalanceCard';
-import ExpenseCard from '../components/ExpenseCard';
 import Modal from '../components/Modal';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { supabase } from '../services/supabase';
@@ -14,7 +13,7 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null); // Estado para guardar o usuário logado
   
-  const { transactions, loading } = useDashboardData();
+  const { transactions } = useDashboardData();
 
   // Verifica se o usuário já está logado ao carregar a página
   useEffect(() => {
