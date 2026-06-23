@@ -13,7 +13,8 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   
-  const { transactions } = useDashboardData();
+  // 1. AQUI: Puxamos o refetch (F5 invisível) que criámos no passo anterior!
+  const { transactions, refetch } = useDashboardData();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -36,11 +37,21 @@ export default function Home() {
     await supabase.auth.signOut();
   };
 
-  const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+  // 2. Filtramos as transações baseadas na aba selecionada
+  const transacoesFiltradas = transactions.filter((tx) => {
+    return tx.responsavel === activeProfile;
+  });
+
+  // 3. Somamos apenas os valores filtrados
+  const totalAmount = transacoesFiltradas.reduce((sum, tx) => sum + tx.amount, 0);
+
+  // Valores independentes para a barra roxa do casal
+  const totalSamuel = transactions.filter(tx => tx.responsavel === 'samuel').reduce((sum, tx) => sum + tx.amount, 0);
+  const totalJessica = transactions.filter(tx => tx.responsavel === 'jessica').reduce((sum, tx) => sum + tx.amount, 0);
 
   const balanceMock: BalanceSummary = {
     total: totalAmount,
-    coupleState: { samuelPaid: totalAmount, jessicaPaid: 0.0, jointBalance: 0.0 },
+    coupleState: { samuelPaid: totalSamuel, jessicaPaid: totalJessica, jointBalance: 0.0 },
   };
 
   const widgetsMock: WidgetData[] = [
@@ -150,13 +161,12 @@ export default function Home() {
         </button>
       )}
 
-      {/* AQUI ESTÁ A MÁGICA: Modal com onSuccess */}
+      {/* 4. AQUI: O Modal recebe a instrução de recarregar ao fechar */}
       {isModalOpen && (
         <Modal 
           onClose={() => setIsModalOpen(false)} 
           onSuccess={() => {
-            setIsModalOpen(false);
-            window.location.reload(); // Recarrega os dados instantaneamente
+            refetch(); // Executa o recarregamento suave
           }} 
         />
       )}
