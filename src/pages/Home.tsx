@@ -11,11 +11,10 @@ type ProfileView = 'samuel' | 'casal' | 'jessica';
 export default function Home() {
   const [activeProfile, setActiveProfile] = useState<ProfileView>('casal');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [user, setUser] = useState<any>(null); // Estado para guardar o usuário logado
+  const [user, setUser] = useState<any>(null);
   
   const { transactions } = useDashboardData();
 
-  // Verifica se o usuário já está logado ao carregar a página
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -28,7 +27,6 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Funções de Autenticação
   const handleLoginGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
     if (error) console.error("Erro ao autenticar:", error);
@@ -64,10 +62,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white p-6 pb-32 font-sans selection:bg-[#820ad1]/30 relative">
-      {/* Cabeçalho e Seletor de Perfil */}
       <header className="mb-8 pt-4 flex justify-between items-end">
         <div>
-          {/* Saudação dinâmica baseada no login */}
           <h1 className="text-2xl font-semibold tracking-tight">
             Olá, {user?.user_metadata?.full_name?.split(' ')[0] || 'Visitante'} 👋
           </h1>
@@ -75,7 +71,6 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col items-end gap-3">
-          {/* Botão de Login / Logout */}
           {!user ? (
             <button 
               onClick={handleLoginGoogle}
@@ -123,7 +118,6 @@ export default function Home() {
 
       <BalanceCard data={balanceMock} />
 
-      {/* Widgets */}
       <section className="grid grid-cols-2 gap-4 my-6">
         {widgetsMock.map((widget, index) => (
           <div key={index} className="bg-[#111111] p-5 rounded-3xl border border-white/5 transition-all active:scale-95 flex flex-col justify-between h-32 relative overflow-hidden">
@@ -147,7 +141,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Botão de Lançamento Rápido (FAB) - Só aparece se estiver logado */}
       {user && (
         <button
           onClick={() => setIsModalOpen(true)}
@@ -157,8 +150,16 @@ export default function Home() {
         </button>
       )}
 
-      {/* Modal de Lançamento Rápido */}
-      {isModalOpen && <Modal onClose={() => setIsModalOpen(false)} />}
+      {/* AQUI ESTÁ A MÁGICA: Modal com onSuccess */}
+      {isModalOpen && (
+        <Modal 
+          onClose={() => setIsModalOpen(false)} 
+          onSuccess={() => {
+            setIsModalOpen(false);
+            window.location.reload(); // Recarrega os dados instantaneamente
+          }} 
+        />
+      )}
     </div>
   );
 }
